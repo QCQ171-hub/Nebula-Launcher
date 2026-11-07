@@ -1,0 +1,56 @@
+[package]
+name = "nebula-launcher"
+version = "0.1.0"
+description = "Nebula Launcher — a beautiful Minecraft launcher"
+authors = ["Nebula"]
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "nebula_lib"
+# 桌面端只需要 rlib；cdylib/staticlib 是 Tauri 移动端用的，
+# 且 MinGW 的 ld 对 DLL 导出序号有 65535 上限（export ordinal too large）
+crate-type = ["rlib"]
+
+[features]
+# 让构建产物内嵌前端资源（dist/），而不是去连 devUrl。
+# 没有这个特性时，tauri 的 build script 会把 dev 设为 true，
+# 于是 debug 版 exe 会去请求 http://127.0.0.1:8788 —— 没开 Vite 就是 ERR_CONNECTION_REFUSED。
+# 开发时 `tauri dev` 会自动关掉它，所以不影响热重载。
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+tokio = { version = "1", features = ["rt-multi-thread", "macros", "process", "fs", "time", "sync", "io-util"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "stream", "native-tls", "gzip"] }
+futures-util = "0.3"
+
+sha1 = "0.10"
+md-5 = "0.10"
+hex = "0.4"
+uuid = { version = "1", features = ["v4", "serde"] }
+zip = { version = "2", default-features = false, features = ["deflate"] }
+thiserror = "2"
+anyhow = "1"
+chrono = { version = "0.4", features = ["serde"] }
+rand = "0.8"
+base64 = "0.22"
+regex = "1"
+once_cell = "1"
+urlencoding = "2"
+
+[profile.release]
+opt-level = "s"
+lto = true
+codegen-units = 1
+strip = true
